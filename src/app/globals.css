@@ -1,0 +1,732 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────
+   1. DESIGN TOKENS
+   All magic values live here. Never hardcode
+   #A30005 or black or any spacing value in a
+   component file again.
+   ───────────────────────────────────────────── */
+
+:root {
+    /* Brand colors */
+    --color-brand: #a30005;
+    --color-brand-dark: #7a0004;
+    --color-brand-light: #cc0006;
+    --color-brand-muted: rgba(163, 0, 5, 0.12);
+    --color-brand-glow: rgba(163, 0, 5, 0.3);
+
+    /* Surface colors — dark theme (primary) */
+    --color-bg: #000000;
+    --color-bg-elevated: #0d0d0d;
+    --color-bg-card: #111111;
+    --color-bg-card-hover: #161616;
+    --color-bg-overlay: rgba(0, 0, 0, 0.75);
+
+    /* Surface colors — light (sections that need contrast) */
+    --color-bg-light: #ffffff;
+    --color-bg-light-alt: #f7f7f7;
+    --color-bg-subtle: #f2f2f2;
+
+    /* Text */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #a0a0a0;
+    --color-text-tertiary: #666666;
+    --color-text-dark: #0a0a0a;
+    --color-text-dark-muted: #444444;
+    --color-text-invert: #000000;
+
+    /* Borders */
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-border-brand: rgba(163, 0, 5, 0.4);
+    --color-border-light: rgba(0, 0, 0, 0.08);
+
+    /* Gradients */
+    --gradient-brand: linear-gradient(135deg, #a30005 0%, #7a0004 100%);
+    --gradient-dark: linear-gradient(135deg, #000000 0%, #1a0000 100%);
+    --gradient-hero-overlay: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+    --gradient-section: linear-gradient(140deg, #000000 55%, #a30005 100%);
+    --gradient-card-shine: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.04) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
+
+    /* Typography */
+    --font-primary: "Rubik", sans-serif;
+
+    /* Radius */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-2xl: 32px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.16);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.24);
+    --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.32);
+    --shadow-brand: 0 8px 32px rgba(163, 0, 5, 0.28);
+    --shadow-brand-lg: 0 16px 48px rgba(163, 0, 5, 0.36);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.2);
+    --shadow-card-hover: 0 12px 48px rgba(0, 0, 0, 0.32);
+
+    /* Transitions */
+    --ease-base: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+    --transition-fast: 0.15s var(--ease-base);
+    --transition-base: 0.25s var(--ease-base);
+    --transition-slow: 0.4s var(--ease-enter);
+    --transition-sweep: 0.5s var(--ease-enter);
+
+    /* Section spacing */
+    --section-padding-y: 96px;
+    --section-padding-y-sm: 64px;
+    --section-padding-x: 24px;
+
+    /* Navbar height — used by hero margin-top */
+    --navbar-height: 72px;
+
+    /* shadcn compatibility tokens */
+    --radius: 0.625rem;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: #a30005;
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* shadcn theme compatibility */
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+}
+
+/* ─────────────────────────────────────────────
+   2. BASE / RESET
+   ───────────────────────────────────────────── */
+
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    * {
+        @apply border-border outline-ring/50;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        font-family: var(--font-primary);
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        /* background-color: var(--color-bg); */
+        color: var(--color-text-primary);
+        font-family: var(--font-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
+
+    /* Respect reduced motion — overrides all Framer Motion animations */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+
+    /* Focus visible — accessible keyboard navigation */
+    :focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 3px;
+        border-radius: var(--radius-xs);
+    }
+
+    /* Skip to content — screen reader and keyboard users */
+    .skip-to-content {
+        position: absolute;
+        top: -100%;
+        left: 16px;
+        z-index: 9999;
+        padding: 8px 16px;
+        background: var(--color-brand);
+        color: white;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: top var(--transition-fast);
+    }
+
+    .skip-to-content:focus {
+        top: 16px;
+    }
+
+    /* Smooth image rendering */
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* Selection color */
+    ::selection {
+        background-color: var(--color-brand-muted);
+        color: var(--color-brand);
+    }
+}
+
+/* ─────────────────────────────────────────────
+   3. TYPOGRAPHY SCALE
+   Fluid type that scales between mobile and desktop.
+   clamp(min, preferred, max) — no breakpoint hacks.
+   ───────────────────────────────────────────── */
+
+@layer base {
+    .text-display {
+        font-size: clamp(2.75rem, 6vw, 5rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+    }
+
+    .text-h1 {
+        font-size: clamp(2rem, 4.5vw, 3.75rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    .text-h2 {
+        font-size: clamp(1.625rem, 3vw, 2.75rem);
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.015em;
+    }
+
+    .text-h3 {
+        font-size: clamp(1.25rem, 2.5vw, 1.875rem);
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+    }
+
+    .text-h4 {
+        font-size: clamp(1.125rem, 2vw, 1.5rem);
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    .text-body-lg {
+        font-size: clamp(1rem, 1.5vw, 1.125rem);
+        font-weight: 400;
+        line-height: 1.7;
+    }
+
+    .text-body {
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.65;
+    }
+
+    .text-body-sm {
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.6;
+    }
+
+    .text-caption {
+        font-size: 0.75rem;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+
+    .text-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    /* Eyebrow — small label above headings */
+    .text-eyebrow {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-brand);
+    }
+}
+
+/* ─────────────────────────────────────────────
+   4. COMPONENT LAYER
+   Reusable CSS classes that can't be expressed
+   cleanly as Tailwind utilities (mostly pseudo-
+   element animations and complex interactions).
+   ───────────────────────────────────────────── */
+
+@layer components {
+    /* ── SWEEP BUTTON ───────────────────────────
+     The brand's signature hover animation.
+     A black fill sweeps in from the bottom-left.
+     
+     Replaces: hero-btn, industry-btn, request-btn, get-btn
+     (4 separate identical implementations → 1)
+     
+     Usage: add class "btn-sweep" to any <a> or <button>
+     alongside Tailwind classes for base styling.
+     ─────────────────────────────────────────── */
+
+    .btn-sweep {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        z-index: 1;
+        transition:
+            color var(--transition-fast),
+            transform var(--transition-fast);
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .btn-sweep::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: #000000;
+        transform: scaleX(0) scaleY(0);
+        transform-origin: bottom left;
+        transition: transform var(--transition-sweep);
+        z-index: -1;
+    }
+
+    .btn-sweep:hover::before {
+        transform: scaleX(1) scaleY(1);
+    }
+
+    .btn-sweep:hover {
+        color: #ffffff;
+        transform: scale(1.01);
+    }
+
+    .btn-sweep:active {
+        transform: scale(0.98);
+    }
+
+    /* Variant: sweep with brand color fill instead of black */
+    .btn-sweep-brand::before {
+        background: var(--color-brand);
+    }
+
+    /* Variant: inverse — white button with black sweep */
+    .btn-sweep-inverse {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .btn-sweep-inverse::before {
+        background: var(--color-bg-elevated);
+    }
+
+    .btn-sweep-inverse:hover {
+        color: #ffffff;
+    }
+
+    /* ── NAV UNDERLINE HOVER ────────────────────
+     The animated underline on navbar links.
+     Replaces navbar.css .hover-effect
+     ─────────────────────────────────────────── */
+
+    .nav-link-underline {
+        position: relative;
+        text-decoration: none;
+        padding-bottom: 2px;
+    }
+
+    .nav-link-underline::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: var(--color-brand);
+        transition: width var(--transition-base);
+    }
+
+    .nav-link-underline:hover::after {
+        width: 100%;
+    }
+
+    /* ── GLASS CARD ─────────────────────────────
+     Frosted-glass card used in Contact page.
+     Centralizes the backdrop-filter pattern.
+     ─────────────────────────────────────────── */
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+    }
+
+    .glass-card-light {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* ── SECTION DIVIDER ────────────────────────
+     Subtle separator between page sections.
+     ─────────────────────────────────────────── */
+
+    .section-divider {
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(
+            to right,
+            transparent,
+            var(--color-border) 20%,
+            var(--color-border) 80%,
+            transparent
+        );
+    }
+
+    /* ── BRAND ACCENT LINE ──────────────────────
+     Red horizontal rule used under section titles.
+     ─────────────────────────────────────────── */
+
+    .brand-line {
+        display: block;
+        width: 48px;
+        height: 3px;
+        background: var(--color-brand);
+        border-radius: var(--radius-full);
+    }
+
+    .brand-line-lg {
+        width: 64px;
+        height: 4px;
+    }
+
+    /* ── STAT CARD ──────────────────────────────
+     For the offer/stats strip section.
+     ─────────────────────────────────────────── */
+
+    .stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 32px 24px;
+        border-radius: var(--radius-lg);
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        transition:
+            border-color var(--transition-base),
+            box-shadow var(--transition-base),
+            transform var(--transition-base);
+    }
+
+    .stat-card:hover {
+        border-color: var(--color-border-brand);
+        box-shadow: var(--shadow-brand);
+        transform: translateY(-4px);
+    }
+
+    /* ── PLAN CARD ──────────────────────────────
+     For pricing plan cards.
+     ─────────────────────────────────────────── */
+
+    .plan-card {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: 32px;
+        transition:
+            border-color var(--transition-base),
+            box-shadow var(--transition-base),
+            transform var(--transition-base);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .plan-card:hover {
+        border-color: rgba(163, 0, 5, 0.3);
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-4px);
+    }
+
+    .plan-card--highlighted {
+        border-color: var(--color-brand);
+        box-shadow: var(--shadow-brand);
+    }
+
+    .plan-card--highlighted:hover {
+        box-shadow: var(--shadow-brand-lg);
+    }
+
+    /* Shine overlay on highlighted card */
+    .plan-card--highlighted::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--gradient-card-shine);
+        pointer-events: none;
+    }
+
+    /* ── INDUSTRY CARD ──────────────────────────
+     ─────────────────────────────────────────── */
+
+    .industry-card {
+        background: var(--color-bg-light);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition:
+            transform var(--transition-base),
+            box-shadow var(--transition-base);
+    }
+
+    .industry-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* ── FAQ ITEM ───────────────────────────────
+     ─────────────────────────────────────────── */
+
+    .faq-item {
+        border-bottom: 1px solid var(--color-border-light);
+        cursor: pointer;
+        transition: color var(--transition-base);
+    }
+
+    .faq-item:hover {
+        color: var(--color-brand);
+    }
+
+    /* ── GRADIENT SECTION BACKGROUNDS ──────────
+     Used for WhyChoose, Testimonials sections.
+     Replaces hardcoded background values in CSS files.
+     ─────────────────────────────────────────── */
+
+    .bg-gradient-dark-brand {
+        background: var(--gradient-section);
+    }
+
+    .bg-gradient-brand {
+        background: var(--gradient-brand);
+    }
+
+    /* ── CAROUSEL OVERRIDES ─────────────────────
+     Minimal overrides for the shadcn carousel
+     used in Testimonials.
+     ─────────────────────────────────────────── */
+
+    .testimonial-carousel .carousel-prev,
+    .testimonial-carousel .carousel-next {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+    }
+
+    .testimonial-carousel .carousel-prev:hover,
+    .testimonial-carousel .carousel-next:hover {
+        background: var(--color-brand);
+        border-color: var(--color-brand);
+    }
+
+    /* ── MOBILE MENU OVERLAY ────────────────────
+     ─────────────────────────────────────────── */
+
+    .mobile-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--color-bg);
+        border-top: 1px solid var(--color-border);
+        overflow: hidden;
+    }
+}
+
+/* ─────────────────────────────────────────────
+   5. UTILITY OVERRIDES
+   Tailwind utility corrections and additions.
+   ───────────────────────────────────────────── */
+
+@layer utilities {
+    /* Container with consistent horizontal padding */
+    .container-pad {
+        padding-left: var(--section-padding-x);
+        padding-right: var(--section-padding-x);
+    }
+
+    /* Standard section vertical padding */
+    .section-pad {
+        padding-top: var(--section-padding-y);
+        padding-bottom: var(--section-padding-y);
+    }
+
+    .section-pad-sm {
+        padding-top: var(--section-padding-y-sm);
+        padding-bottom: var(--section-padding-y-sm);
+    }
+
+    /* Text gradient — for highlighted words in headings */
+    .text-gradient-brand {
+        background: var(--gradient-brand);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Visually hidden but accessible to screen readers */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
+    /* Hide scrollbar while maintaining scroll */
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* ==========================================================================
+   Digitek Hybrid Theme System Architecture
+   ========================================================================== */
+
+/* Dark mode remains the unclassed default baseline across all pages */
+:root {
+    --color-bg: #000000;
+    --color-text: #f5f5f5;
+    --color-border: #171717;
+}
+
+/* Light mode overrides: Activated ONLY inside the specified page wrapper container */
+.light-mode-active {
+    background-color: #fafafa !important;
+    color: #171717 !important;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+/* Ensure common layout sections adapt cleanly inside the light wrapper */
+.light-mode-active section,
+.light-mode-active .bg-black,
+.light-mode-active .bg-neutral-950\/40 {
+    background-color: #ffffff !important;
+    border-color: #e5e5e5 !important;
+    color: #171717 !important;
+}
+
+/* Calibrate typography overrides for light presentation */
+.light-mode-active h1,
+.light-mode-active h2,
+.light-mode-active h3,
+.light-mode-active h4 {
+    color: #0a0a0a !important;
+}
+
+.light-mode-active p,
+.light-mode-active span:not(.text-white) {
+    color: #444444 !important;
+}
+
+.light-mode-active .text-neutral-400,
+.light-mode-active .text-neutral-500 {
+    color: #555555 !important;
+}

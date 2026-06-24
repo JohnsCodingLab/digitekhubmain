@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+
+# *
+User-agent: *
+Disallow: /api/
+
+# Host
+Host: https://network.digitekhub.io/
+
+# Sitemaps
+Sitemap: https://network.digitekhub.io/sitemap.xml
+Sitemap: https://network.digitekhub.io//sitemap.xml
