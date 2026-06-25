@@ -3,7 +3,7 @@
 import * as React from "react";
 import { FaSun, FaMoon } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "./ThemeProvider";
+import { useTheme } from "./useTheme";
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
     const { toggle, isLight } = useTheme();

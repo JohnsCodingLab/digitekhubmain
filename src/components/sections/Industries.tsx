@@ -58,7 +58,7 @@ export default function Industries() {
                                 }
                                 alt={`${industry.title} Dedicated Infrastructure Matrix`}
                                 fill
-                                className="object-cover transition-all duration-700 mix-blend-luminosity opacity-70 group-hover:scale-103 group-hover:opacity-100 group-hover:mix-blend-normal"
+                                className="object-cover transition-all duration-700 md:mix-blend-luminosity opacity-70 group-hover:scale-103 group-hover:opacity-100 group-hover:mix-blend-normal"
                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
 

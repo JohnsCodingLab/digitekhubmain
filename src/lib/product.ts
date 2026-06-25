@@ -38,7 +38,7 @@ export const PRODUCTS: Product[] = [
         name: "Digitek PowerBank",
         description:
             "Keep your router and devices running through power outages. Compact, fast-charging, built for Nigerian businesses that can't afford downtime.",
-        images: ["/powerbank.jpeg"],
+        images: ["/powerBank2.png"],
         variants: [
             { id: "powerbank-10000", label: "10,000mAh", priceNgn: 35000 },
             { id: "powerbank-20000", label: "20,000mAh", priceNgn: 45000 },

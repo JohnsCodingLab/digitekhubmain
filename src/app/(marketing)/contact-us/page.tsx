@@ -11,10 +11,9 @@ import React from "react";
 import Link from "next/link";
 import { LuPhoneCall, LuMail, LuMessageCircle } from "react-icons/lu";
 import { FaXTwitter, FaInstagram, FaLinkedin, FaTiktok } from "react-icons/fa6";
-import { Section } from "@/src/components/layout/Section";
 import { Container } from "@/src/components/layout/Container";
 import { ScrollReveal } from "@/src/components/common/ScrollReveal";
-import { useTheme } from "@/src/components/common/ThemeProvider";
+import { useTheme } from "@/src/components/common/useTheme";
 import {
     CONTACT_CHANNELS,
     SOCIAL_LINKS,
@@ -65,11 +64,11 @@ function ChannelCard({
             className={`group relative flex flex-col gap-4 p-6 rounded-lg border transition-all duration-300 hover:-translate-y-0.5 ${
                 isLight
                     ? "bg-white border-neutral-200 text-neutral-900 shadow-xs hover:border-[#A30005]/30"
-                    : "bg-neutral-950 border-neutral-900 text-neutral-200 hover:border-[#A30005]/30"
+                    : "bg-[var(--color-bg)] border-neutral-900 text-neutral-200 hover:border-[#A30005]/30"
             }`}
         >
             <div
-                className={`w-10 h-12 w-10 h-10 rounded flex items-center justify-center shrink-0 ${isLight ? meta.bgLight : meta.bgDark} ${meta.color}`}
+                className={`w-10 h-12 rounded flex items-center justify-center shrink-0 ${isLight ? meta.bgLight : meta.bgDark} ${meta.color}`}
             >
                 {meta.icon}
             </div>
@@ -111,7 +110,7 @@ function ChannelCard({
 }
 
 export default function ContactUs() {
-    const { pageClassName, isLight } = useTheme();
+    const { isLight } = useTheme();
 
     const socialPills = [
         {
@@ -149,13 +148,10 @@ export default function ContactUs() {
     ];
 
     return (
-        <div
-            className={`min-h-screen transition-colors duration-300 ${pageClassName}`}
-        >
+        <div className={`min-h-screen transition-colors duration-300`}>
             <div style={{ marginTop: "var(--navbar-height)" }}>
-                <Section
-                    variant="transparent"
-                    className="py-16 md:py-24 bg-transparent border-b-0"
+                <div
+                    className={`py-16 md:py-24 border-b-0 ${isLight ? "bg-white" : "bg-[var(--color-bg)]"}`}
                 >
                     <Container>
                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 lg:gap-20 items-start">
@@ -331,7 +327,7 @@ export default function ContactUs() {
                             </div>
                         </div>
                     </Container>
-                </Section>
+                </div>
             </div>
         </div>
     );

@@ -16,7 +16,7 @@ import { BiCircle } from "react-icons/bi";
 import { Button } from "@/src/components/common/Button";
 import { Modal } from "@/src/components/common/Modal";
 import { LeadForm } from "@/src/components/common/LeadForm";
-import { useTheme } from "@/src/lib/useTheme";
+import { useTheme } from "@/src/components/common/useTheme";
 import { cardReveal } from "@/src/lib/animations";
 import { SITE_CONFIG, type Plan } from "@/src/lib/constants";
 

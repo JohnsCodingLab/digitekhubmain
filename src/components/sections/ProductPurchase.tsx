@@ -1,43 +1,23 @@
 /**
  * components/sections/ProductPurchase.tsx
- *
- * UPDATED — switched from raw window.PaystackPop to the
- * react-paystack package (usePaystackPayment hook). Fixes a
- * CSP (Content Security Policy) error some sites hit with the
- * manual <script> + global object approach.
- *
- * ARCHITECTURE NOTE ON WHY THIS LOOKS DIFFERENT NOW:
- * usePaystackPayment() is a React hook — it can only be called
- * in a component body, and its config (reference, amount, email)
- * must be known at the time it's set up. But we don't know the
- * reference/amount until AFTER calling /api/orders/initiate
- * (which reserves stock and computes the real total server-side).
- *
- * So the flow is:
- *   1. Customer submits the checkout form
- *   2. initiateOrder() is called (lib/checkout.ts) — reserves
- *      stock, returns { reference, amountKobo, email }
- *   3. That result is stored in state → triggers a re-render
- *      with a NEW paystackConfig
- *   4. A useEffect watches for that config becoming ready, and
- *      calls initializePayment(onSuccess, onClose) — opening
- *      the Paystack popup
- *   5. On success, verifyOrder() (server-side check against
- *      Paystack) confirms before showing the success screen
- *
- * This is a little more moving parts than the old direct
- * window.PaystackPop.setup() call, but it's how the hook-based
- * API requires things to be wired, and it avoids the CSP issue
- * tied to manually injecting Paystack's script tag.
  */
 
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePaystackPayment } from "react-paystack";
-import { FaCheck, FaSpinner, FaMinus, FaPlus, FaTruck } from "react-icons/fa6";
+import {
+    FaCheck,
+    FaSpinner,
+    FaMinus,
+    FaPlus,
+    FaTruck,
+    FaLock,
+} from "react-icons/fa6";
 import { PRODUCTS, DELIVERY_FEE_NGN, formatNaira } from "@/src/lib/product";
+import { useTheme } from "../common/useTheme";
 import {
     initiateOrder,
     verifyOrder,
@@ -45,16 +25,17 @@ import {
     type CheckoutState,
 } from "@/src/lib/checkout";
 
-const PRODUCT = PRODUCTS[0]; // single-product catalog for now
+const PRODUCT = PRODUCTS[0];
 
 interface PaystackConfig {
     reference: string;
     email: string;
-    amount: number; // kobo
+    amount: number;
     publicKey: string;
 }
 
 export function ProductPurchase() {
+    const { isLight } = useTheme(); // Now actively used for structural conditioning
     const [quantities, setQuantities] = useState<Record<string, number>>(() =>
         Object.fromEntries(PRODUCT.variants.map((v) => [v.id, 0])),
     );
@@ -70,20 +51,12 @@ export function ProductPurchase() {
 
     const [checkoutState, setCheckoutState] = useState<CheckoutState>("idle");
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
-
-    // Becomes non-null once initiateOrder() succeeds — its
-    // presence is what triggers the Paystack popup via useEffect
     const [paystackConfig, setPaystackConfig] = useState<PaystackConfig | null>(
         null,
     );
 
     const initializePayment = usePaystackPayment(
         paystackConfig ?? {
-            // Placeholder config so the hook always has something
-            // valid to initialize with — initializePayment() is only
-            // ever actually invoked once paystackConfig is real
-            // (guarded in the useEffect below), so this branch never
-            // opens a popup with bogus data.
             reference: "",
             email: "",
             amount: 0,
@@ -96,26 +69,19 @@ export function ProductPurchase() {
         checkoutState === "awaiting-payment" ||
         checkoutState === "verifying";
 
-    // ── Fetch live stock on mount ────────────────────────────
-
     useEffect(() => {
         let cancelled = false;
-
         async function fetchStock() {
             try {
                 const res = await fetch("/api/stock");
                 const data = await res.json();
-                if (!cancelled && data.stock) {
-                    setStock(data.stock);
-                }
+                if (!cancelled && data.stock) setStock(data.stock);
             } catch {
-                // Stock display is advisory; real enforcement is
-                // server-side regardless
+                // advisory fallback
             } finally {
                 if (!cancelled) setStockLoading(false);
             }
         }
-
         fetchStock();
         return () => {
             cancelled = true;
@@ -137,8 +103,6 @@ export function ProductPurchase() {
         });
     }, [stock]);
 
-    // ── Derived: line items, totals ──────────────────────────
-
     const lineItems = useMemo(
         () =>
             PRODUCT.variants
@@ -158,8 +122,6 @@ export function ProductPurchase() {
     const hasItems = lineItems.length > 0;
     const totalUnitsOrdered = lineItems.reduce((sum, l) => sum + l.quantity, 0);
 
-    // ── Handlers ─────────────────────────────────────────────
-
     const adjustQuantity = (variantId: string, delta: number) => {
         setQuantities((prev) => {
             const variantStock = stock[variantId] ?? 10;
@@ -175,9 +137,6 @@ export function ProductPurchase() {
         setShowCheckoutForm(true);
     };
 
-    // Step 1: reserve stock + create the order. On success, this
-    // sets paystackConfig — which the useEffect below picks up to
-    // actually open the popup (see architecture note at the top).
     const handleSubmitOrder = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!hasItems) return;
@@ -221,8 +180,6 @@ export function ProductPurchase() {
             return;
         }
 
-        // This state update triggers a re-render with the real
-        // config, which the useEffect below detects and acts on
         setPaystackConfig({
             reference: result.reference,
             email: result.email,
@@ -231,29 +188,16 @@ export function ProductPurchase() {
         });
     };
 
-    // Step 2: once paystackConfig becomes a real (non-null) value
-    // AND initializePayment has been re-created with that config
-    // (it's re-created every render since it depends on
-    // paystackConfig), open the popup.
-    //
-    // Guarded by checkoutState to ensure this only fires once per
-    // order — without that guard, any re-render while
-    // paystackConfig is set would try to reopen the popup.
     const hasOpenedPopupRef = React.useRef(false);
 
     useEffect(() => {
         if (!paystackConfig || hasOpenedPopupRef.current) return;
         hasOpenedPopupRef.current = true;
-
         setCheckoutState("awaiting-payment");
 
         const onSuccess = async (response: { reference: string }) => {
-            // Paystack's popup says "done" — this is NOT proof of
-            // payment. Verify server-side before treating as success.
             setCheckoutState("verifying");
-
             const verifyResult = await verifyOrder(response.reference);
-
             if (!verifyResult.success) {
                 setCheckoutError(
                     verifyResult.error ?? "Payment could not be verified.",
@@ -261,14 +205,10 @@ export function ProductPurchase() {
                 setCheckoutState("error");
                 return;
             }
-
             setCheckoutState("success");
         };
 
         const onClose = () => {
-            // Popup dismissed without completing — order stays
-            // pending in Redis and expires after 30 minutes (see
-            // SHOP_SETUP.txt for the cleanup approach)
             setCheckoutState((current) =>
                 current === "success" ? current : "idle",
             );
@@ -277,112 +217,126 @@ export function ProductPurchase() {
         };
 
         initializePayment({ onSuccess, onClose });
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [paystackConfig]);
-
-    const handleStartOver = () => {
-        setCheckoutState("idle");
-        setCheckoutError(null);
-        setPaystackConfig(null);
-        hasOpenedPopupRef.current = false;
-        setShowCheckoutForm(false);
-        setCustomerName("");
-        setCustomerEmail("");
-        setCustomerPhone("");
-        setDeliveryAddress("");
-        setQuantities(
-            Object.fromEntries(PRODUCT.variants.map((v) => [v.id, 0])),
-        );
-        setStockLoading(true);
-        fetch("/api/stock")
-            .then((r) => r.json())
-            .then((data) => data.stock && setStock(data.stock))
-            .finally(() => setStockLoading(false));
-    };
-
-    // ── Success state ───────────────────────────────────────
 
     if (checkoutState === "success") {
         return (
             <div
-                className="max-w-lg mx-auto p-8 rounded-[var(--radius-xl)]
-                   bg-[var(--overlay-soft)] border border-[var(--overlay-border-soft)] text-center"
+                className={`max-w-lg mx-auto p-8 rounded-[var(--radius-xl)] border shadow-xl text-center backdrop-blur-md transition-all duration-300 ${
+                    isLight
+                        ? "bg-white border-slate-100 shadow-slate-200/60 text-slate-900"
+                        : "bg-white/5 border-white/10 shadow-2xl text-white"
+                }`}
             >
                 <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                    className="w-16 h-16 mx-auto rounded-full bg-emerald-400/15 text-emerald-400
-                     flex items-center justify-center mb-5"
+                    className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5 border border-emerald-500/20"
                 >
-                    <FaCheck size={26} />
+                    <FaCheck size={24} />
                 </motion.div>
-                <h3 className="text-h3 text-[var(--color-text-primary)] mb-2">
-                    Order confirmed!
-                </h3>
-                <p className="text-body text-[var(--overlay-text-muted)] mb-1">
+                <h3 className="text-2xl font-bold mb-2">Order Confirmed!</h3>
+                <p
+                    className={`text-body mb-1 ${isLight ? "text-slate-600" : "text-slate-300"}`}
+                >
                     Thank you, {customerName.split(" ")[0]}. Your order will be
                     delivered to:
                 </p>
-                <p className="text-body-sm text-[var(--overlay-text-subtle)] mb-6">
+                <p
+                    className={`text-body-sm font-medium p-3 rounded-xl border my-4 ${
+                        isLight
+                            ? "bg-slate-50 border-slate-100 text-slate-800"
+                            : "bg-white/5 border-white/5 text-slate-200"
+                    }`}
+                >
                     {deliveryAddress}
                 </p>
-                <p className="text-caption text-[var(--overlay-text-faint)] mb-6">
-                    A confirmation has been sent to {customerEmail}. Our team
-                    will reach out to coordinate delivery.
-                </p>
-                <button
-                    onClick={handleStartOver}
-                    className="text-body-sm text-[var(--color-brand)] hover:underline"
+                <p
+                    className={`text-caption mb-6 ${isLight ? "text-slate-500" : "text-slate-400"}`}
                 >
-                    Place another order
-                </button>
+                    A verification receipt has been cataloged and sent to{" "}
+                    {customerEmail}.
+                </p>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            {/* Left — product info */}
-            <div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {/* Left — Visual Showcase Column */}
+            <div className="sticky top-24">
                 <div
-                    className="aspect-square rounded-[var(--radius-xl)] bg-[var(--overlay-soft)]
-                       flex items-center justify-center mb-6 overflow-hidden"
+                    className={`relative aspect-square rounded-[var(--radius-2xl)] border p-3 shadow-md overflow-hidden group transition-all duration-300 flex items-center justify-center ${
+                        isLight
+                            ? "bg-white border-slate-100 shadow-slate-200/50"
+                            : "bg-white/5 border-white/10"
+                    }`}
                 >
-                    <img
+                    <Image
                         src={PRODUCT.images[0]}
                         alt={PRODUCT.name}
-                        className="w-full h-full object-cover"
+                        width={500}
+                        height={500}
+                        priority
+                        className="object-cover rounded-[var(--radius-xl)] transition-transform duration-500 group-hover:scale-[1.02]"
                     />
                 </div>
-                <h1 className="text-h2 text-[var(--color-text-primary)] mb-3">
+                <h1
+                    className={`text-3xl font-extrabold tracking-tight mt-8 mb-4 ${isLight ? "text-slate-900" : "text-white"}`}
+                >
                     {PRODUCT.name}
                 </h1>
-                <p className="text-body text-[var(--overlay-text-muted)] leading-relaxed">
+                <p
+                    className={`text-base leading-relaxed ${isLight ? "text-slate-600" : "text-slate-300"}`}
+                >
                     {PRODUCT.description}
                 </p>
-                <div className="flex items-center gap-2.5 mt-5 text-body-sm text-[var(--overlay-text-subtle)]">
-                    <FaTruck size={14} aria-hidden="true" />
-                    Delivery: {formatNaira(DELIVERY_FEE_NGN)} flat rate,
-                    nationwide
+                <div
+                    className={`flex items-center gap-3 mt-6 text-sm font-medium w-fit px-4 py-2.5 rounded-full border transition-all duration-300 ${
+                        isLight
+                            ? "bg-slate-50 border-slate-100 text-slate-600"
+                            : "bg-white/5 border-white/5 text-slate-400"
+                    }`}
+                >
+                    <FaTruck size={14} className="text-[var(--color-brand)]" />
+                    Delivery: {formatNaira(DELIVERY_FEE_NGN)} Flat Rate
+                    Nationwide
                 </div>
             </div>
 
-            {/* Right — purchase panel */}
-            <div className="p-7 rounded-[var(--radius-xl)] bg-[var(--overlay-soft)]">
+            {/* Right — Transaction & Setup Panel */}
+            <div
+                className={`p-8 rounded-[var(--radius-2xl)] border shadow-xl backdrop-blur-md transition-all duration-300 ${
+                    isLight
+                        ? "bg-white border-slate-100 shadow-slate-200/50"
+                        : "bg-white/5 border-white/10 shadow-2xl"
+                }`}
+            >
                 <AnimatePresence mode="wait">
                     {!showCheckoutForm ? (
                         <motion.div
                             key="select"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
                         >
-                            <p className="text-label text-[var(--overlay-text-muted)] mb-3">
-                                Choose quantity per capacity
-                            </p>
-                            <div className="flex flex-col gap-3 mb-6">
+                            <div className="mb-6">
+                                <h3
+                                    className={`text-lg font-bold ${isLight ? "text-slate-900" : "text-white"}`}
+                                >
+                                    Configure Order
+                                </h3>
+                                <p
+                                    className={`text-xs mt-0.5 ${isLight ? "text-slate-500" : "text-slate-400"}`}
+                                >
+                                    Select your desired configurations and
+                                    quantities below
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-4 mb-6">
                                 {PRODUCT.variants.map((variant) => {
                                     const variantStock = stock[variant.id] ?? 0;
                                     const variantSoldOut =
@@ -396,28 +350,36 @@ export function ProductPurchase() {
                                     return (
                                         <div
                                             key={variant.id}
-                                            className={`flex items-center justify-between gap-4 p-4
-                                 rounded-[var(--radius-md)] border transition-colors duration-150
-                                 ${
-                                     qty > 0
-                                         ? "border-[var(--color-brand)] bg-[var(--color-brand)]/10"
-                                         : "border-[var(--overlay-border-soft)]"
-                                 }`}
+                                            className={`flex items-center justify-between gap-4 p-4.5 rounded-[var(--radius-xl)] border transition-all duration-300 ${
+                                                qty > 0
+                                                    ? "border-[var(--color-brand)] bg-[var(--color-brand)]/[0.04] shadow-sm"
+                                                    : isLight
+                                                      ? "border-slate-100 bg-slate-50/50"
+                                                      : "border-white/5 bg-white/[0.02]"
+                                            }`}
                                         >
                                             <div className="min-w-0">
-                                                <p className="text-body font-semibold text-[var(--color-text-primary)]">
+                                                <p
+                                                    className={`text-sm font-bold ${isLight ? "text-slate-900" : "text-white"}`}
+                                                >
                                                     {variant.label}
                                                 </p>
-                                                <p className="text-body-sm text-[var(--overlay-text-muted)]">
+                                                <p className="text-sm font-semibold text-[var(--color-brand)] mt-0.5">
                                                     {formatNaira(
                                                         variant.priceNgn,
                                                     )}
                                                 </p>
-                                                <p
-                                                    className={`text-caption mt-0.5 ${
+                                                <span
+                                                    className={`inline-flex items-center text-[11px] font-medium mt-2 px-2 py-0.5 rounded-full ${
                                                         variantSoldOut
-                                                            ? "text-red-400"
-                                                            : "text-[var(--overlay-text-faint)]"
+                                                            ? "bg-red-500/10 text-red-500"
+                                                            : variantStock <=
+                                                                    5 &&
+                                                                !stockLoading
+                                                              ? "bg-amber-500/10 text-amber-500"
+                                                              : isLight
+                                                                ? "bg-slate-100 text-slate-600"
+                                                                : "bg-white/5 text-slate-400"
                                                     }`}
                                                 >
                                                     {stockLoading
@@ -427,10 +389,16 @@ export function ProductPurchase() {
                                                           : variantStock <= 5
                                                             ? `Only ${variantStock} left`
                                                             : "In stock"}
-                                                </p>
+                                                </span>
                                             </div>
 
-                                            <div className="flex items-center gap-3 shrink-0">
+                                            <div
+                                                className={`flex items-center gap-3.5 border p-1.5 rounded-full shadow-inner transition-all duration-300 ${
+                                                    isLight
+                                                        ? "bg-white border-slate-100"
+                                                        : "bg-white/5 border-white/10"
+                                                }`}
+                                            >
                                                 <button
                                                     type="button"
                                                     onClick={() =>
@@ -443,14 +411,17 @@ export function ProductPurchase() {
                                                         qty <= 0 ||
                                                         variantSoldOut
                                                     }
-                                                    aria-label={`Decrease ${variant.label} quantity`}
-                                                    className="w-9 h-9 rounded-full border border-[var(--overlay-border-medium)]
-                                     flex items-center justify-center text-[var(--overlay-text-strong)]
-                                     hover:border-[var(--overlay-border-medium)] disabled:opacity-30 transition-colors"
+                                                    className={`w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-30 transition-all shadow-sm ${
+                                                        isLight
+                                                            ? "border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                            : "border-white/10 text-slate-300 hover:bg-white/10"
+                                                    }`}
                                                 >
-                                                    <FaMinus size={11} />
+                                                    <FaMinus size={10} />
                                                 </button>
-                                                <span className="text-body font-semibold text-[var(--color-text-primary)] w-6 text-center">
+                                                <span
+                                                    className={`text-sm font-bold w-5 text-center ${isLight ? "text-slate-900" : "text-white"}`}
+                                                >
                                                     {qty}
                                                 </span>
                                                 <button
@@ -465,12 +436,13 @@ export function ProductPurchase() {
                                                         qty >= maxQty ||
                                                         variantSoldOut
                                                     }
-                                                    aria-label={`Increase ${variant.label} quantity`}
-                                                    className="w-9 h-9 rounded-full border border-[var(--overlay-border-medium)]
-                                     flex items-center justify-center text-[var(--overlay-text-strong)]
-                                     hover:border-[var(--overlay-border-medium)] disabled:opacity-30 transition-colors"
+                                                    className={`w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-30 transition-all shadow-sm ${
+                                                        isLight
+                                                            ? "border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                            : "border-white/10 text-slate-300 hover:bg-white/10"
+                                                    }`}
                                                 >
-                                                    <FaPlus size={11} />
+                                                    <FaPlus size={10} />
                                                 </button>
                                             </div>
                                         </div>
@@ -479,17 +451,27 @@ export function ProductPurchase() {
                             </div>
 
                             {hasItems ? (
-                                <div className="border-t border-[var(--overlay-border-soft)] pt-5 mb-6 flex flex-col gap-2">
+                                <div
+                                    className={`border rounded-2xl p-5 mb-6 flex flex-col gap-2.5 shadow-sm transition-all duration-300 ${
+                                        isLight
+                                            ? "bg-slate-50 border-slate-100"
+                                            : "bg-white/[0.02] border-white/5"
+                                    }`}
+                                >
                                     {lineItems.map((line) => (
                                         <div
                                             key={line.variant.id}
-                                            className="flex justify-between text-body-sm text-[var(--overlay-text-muted)]"
+                                            className={`flex justify-between text-sm ${isLight ? "text-slate-600" : "text-slate-300"}`}
                                         >
                                             <span>
-                                                {line.variant.label} ×{" "}
-                                                {line.quantity}
+                                                {line.variant.label}{" "}
+                                                <span className="text-xs text-slate-400 font-medium">
+                                                    × {line.quantity}
+                                                </span>
                                             </span>
-                                            <span>
+                                            <span
+                                                className={`font-medium ${isLight ? "text-slate-800" : "text-slate-200"}`}
+                                            >
                                                 {formatNaira(
                                                     line.variant.priceNgn *
                                                         line.quantity,
@@ -497,34 +479,48 @@ export function ProductPurchase() {
                                             </span>
                                         </div>
                                     ))}
-                                    <div className="flex justify-between text-body-sm text-[var(--overlay-text-muted)]">
-                                        <span>Delivery</span>
-                                        <span>
+                                    <div
+                                        className={`flex justify-between text-sm ${isLight ? "text-slate-600" : "text-slate-300"}`}
+                                    >
+                                        <span>Delivery Charge</span>
+                                        <span
+                                            className={`font-medium ${isLight ? "text-slate-800" : "text-slate-200"}`}
+                                        >
                                             {formatNaira(DELIVERY_FEE_NGN)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between text-body font-semibold text-[var(--color-text-primary)] pt-2 border-t border-[var(--overlay-border-soft)]">
+                                    <div
+                                        className={`flex justify-between text-base font-bold pt-3 mt-1.5 border-t ${
+                                            isLight
+                                                ? "text-slate-900 border-slate-200"
+                                                : "text-white border-white/10"
+                                        }`}
+                                    >
                                         <span>
-                                            Total ({totalUnitsOrdered} item
-                                            {totalUnitsOrdered !== 1 ? "s" : ""}
-                                            )
+                                            Grand Total ({totalUnitsOrdered}{" "}
+                                            items)
                                         </span>
-                                        <span>{formatNaira(total)}</span>
+                                        <span className="text-lg text-[var(--color-brand)]">
+                                            {formatNaira(total)}
+                                        </span>
                                     </div>
                                 </div>
                             ) : (
-                                <p className="text-body-sm text-[var(--overlay-text-faint)] text-center py-4 mb-2">
-                                    Select a quantity above to get started
-                                </p>
+                                <div
+                                    className={`text-center py-8 mb-4 border border-dashed rounded-2xl ${isLight ? "border-slate-200" : "border-white/10"}`}
+                                >
+                                    <p className="text-sm text-slate-400 font-medium">
+                                        Select a quantity config above to
+                                        initiate cart summary.
+                                    </p>
+                                </div>
                             )}
 
                             <button
                                 type="button"
                                 onClick={handleProceedToCheckout}
                                 disabled={!hasItems || stockLoading}
-                                className="btn-sweep w-full bg-[var(--color-brand)] text-white
-                           px-5 py-3.5 rounded-[var(--radius-md)] text-sm font-semibold
-                           disabled:opacity-50 disabled:pointer-events-none"
+                                className="w-full bg-[var(--color-brand)] text-white hover:brightness-105 active:scale-[0.99] transition-all py-4 rounded-[var(--radius-xl)] text-sm font-bold shadow-lg shadow-[var(--color-brand)]/20 disabled:opacity-40 disabled:pointer-events-none"
                             >
                                 {hasItems
                                     ? "Proceed to Checkout"
@@ -534,111 +530,129 @@ export function ProductPurchase() {
                     ) : (
                         <motion.div
                             key="checkout"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
                         >
                             <button
                                 type="button"
                                 onClick={() => setShowCheckoutForm(false)}
                                 disabled={isProcessing}
-                                className="text-body-sm text-[var(--overlay-text-subtle)] hover:text-[var(--overlay-text-strong)] mb-5 disabled:opacity-30"
+                                className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors mb-6 disabled:opacity-30 inline-block"
                             >
-                                ← Back
+                                ← Return to configs
                             </button>
 
-                            <div className="flex flex-col gap-1.5 mb-5 pb-5 border-b border-[var(--overlay-border-soft)]">
-                                {lineItems.map((line) => (
-                                    <div
-                                        key={line.variant.id}
-                                        className="flex justify-between text-body-sm text-[var(--overlay-text-muted)]"
-                                    >
-                                        <span>
-                                            {line.variant.label} ×{" "}
-                                            {line.quantity}
-                                        </span>
-                                        <span>
-                                            {formatNaira(
-                                                line.variant.priceNgn *
-                                                    line.quantity,
-                                            )}
-                                        </span>
-                                    </div>
-                                ))}
-                                <div className="flex justify-between text-body font-semibold text-[var(--color-text-primary)] pt-1">
+                            <div
+                                className={`border rounded-2xl p-5 mb-6 transition-all duration-300 ${
+                                    isLight
+                                        ? "bg-slate-50 border-slate-100"
+                                        : "bg-white/[0.02] border-white/5"
+                                }`}
+                            >
+                                <div
+                                    className={`flex flex-col gap-2 border-b pb-3 mb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}
+                                >
+                                    {lineItems.map((line) => (
+                                        <div
+                                            key={line.variant.id}
+                                            className="flex justify-between text-xs text-slate-400"
+                                        >
+                                            <span>
+                                                {line.variant.label} ×{" "}
+                                                {line.quantity}
+                                            </span>
+                                            <span
+                                                className={`font-medium ${isLight ? "text-slate-700" : "text-slate-300"}`}
+                                            >
+                                                {formatNaira(
+                                                    line.variant.priceNgn *
+                                                        line.quantity,
+                                                )}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div
+                                    className={`flex justify-between text-sm font-bold ${isLight ? "text-slate-900" : "text-white"}`}
+                                >
                                     <span>Total (incl. delivery)</span>
-                                    <span>{formatNaira(total)}</span>
+                                    <span className="text-[var(--color-brand)]">
+                                        {formatNaira(total)}
+                                    </span>
                                 </div>
                             </div>
 
                             <form
                                 onSubmit={handleSubmitOrder}
-                                className="flex flex-col gap-3"
+                                className="flex flex-col gap-4"
                             >
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Full name"
-                                    value={customerName}
-                                    onChange={(e) =>
-                                        setCustomerName(e.target.value)
-                                    }
-                                    disabled={isProcessing}
-                                    aria-label="Full name"
-                                    className="w-full px-4 py-3 rounded-[var(--radius-md)]
-                             form-input text-body-sm
-                             focus:outline-none focus:border-[var(--color-brand)]/50
-                             disabled:opacity-50 transition-colors duration-150"
-                                />
-                                <input
-                                    type="email"
-                                    required
-                                    placeholder="Email address"
-                                    value={customerEmail}
-                                    onChange={(e) =>
-                                        setCustomerEmail(e.target.value)
-                                    }
-                                    disabled={isProcessing}
-                                    aria-label="Email address"
-                                    className="w-full px-4 py-3 rounded-[var(--radius-md)]
-                             form-input text-body-sm
-                             focus:outline-none focus:border-[var(--color-brand)]/50
-                             disabled:opacity-50 transition-colors duration-150"
-                                />
-                                <input
-                                    type="tel"
-                                    required
-                                    placeholder="Phone number"
-                                    value={customerPhone}
-                                    onChange={(e) =>
-                                        setCustomerPhone(e.target.value)
-                                    }
-                                    disabled={isProcessing}
-                                    aria-label="Phone number"
-                                    className="w-full px-4 py-3 rounded-[var(--radius-md)]
-                             form-input text-body-sm
-                             focus:outline-none focus:border-[var(--color-brand)]/50
-                             disabled:opacity-50 transition-colors duration-150"
-                                />
-                                <textarea
-                                    required
-                                    rows={3}
-                                    placeholder="Delivery address (street, area, city, state)"
-                                    value={deliveryAddress}
-                                    onChange={(e) =>
-                                        setDeliveryAddress(e.target.value)
-                                    }
-                                    disabled={isProcessing}
-                                    aria-label="Delivery address"
-                                    className="w-full px-4 py-3 rounded-[var(--radius-md)]
-                             form-input text-body-sm leading-relaxed
-                             focus:outline-none focus:border-[var(--color-brand)]/50
-                             disabled:opacity-50 transition-colors duration-150 resize-none"
-                                />
+                                <div className="flex flex-col gap-3.5">
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="Full Name"
+                                        value={customerName}
+                                        onChange={(e) =>
+                                            setCustomerName(e.target.value)
+                                        }
+                                        disabled={isProcessing}
+                                        className={`w-full px-4 py-3.5 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] transition-colors disabled:opacity-50 shadow-sm ${
+                                            isLight
+                                                ? "border-slate-200 bg-white text-slate-900"
+                                                : "border-white/10 bg-white/5 text-white"
+                                        }`}
+                                    />
+                                    <input
+                                        type="email"
+                                        required
+                                        placeholder="Email Address"
+                                        value={customerEmail}
+                                        onChange={(e) =>
+                                            setCustomerEmail(e.target.value)
+                                        }
+                                        disabled={isProcessing}
+                                        className={`w-full px-4 py-3.5 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] transition-colors disabled:opacity-50 shadow-sm ${
+                                            isLight
+                                                ? "border-slate-200 bg-white text-slate-900"
+                                                : "border-white/10 bg-white/5 text-white"
+                                        }`}
+                                    />
+                                    <input
+                                        type="tel"
+                                        required
+                                        placeholder="Phone Number"
+                                        value={customerPhone}
+                                        onChange={(e) =>
+                                            setCustomerPhone(e.target.value)
+                                        }
+                                        disabled={isProcessing}
+                                        className={`w-full px-4 py-3.5 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] transition-colors disabled:opacity-50 shadow-sm ${
+                                            isLight
+                                                ? "border-slate-200 bg-white text-slate-900"
+                                                : "border-white/10 bg-white/5 text-white"
+                                        }`}
+                                    />
+                                    <textarea
+                                        required
+                                        rows={3}
+                                        placeholder="Delivery Address (Street, Area, City, State)"
+                                        value={deliveryAddress}
+                                        onChange={(e) =>
+                                            setDeliveryAddress(e.target.value)
+                                        }
+                                        disabled={isProcessing}
+                                        className={`w-full px-4 py-3.5 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] transition-colors disabled:opacity-50 shadow-sm resize-none ${
+                                            isLight
+                                                ? "border-slate-200 bg-white text-slate-900"
+                                                : "border-white/10 bg-white/5 text-white"
+                                        }`}
+                                    />
+                                </div>
 
                                 {checkoutState === "error" && checkoutError && (
                                     <p
-                                        className="text-body-sm text-red-400"
+                                        className="text-xs font-semibold text-red-500 bg-red-500/10 px-4 py-2.5 rounded-xl border border-red-500/20"
                                         role="alert"
                                     >
                                         {checkoutError}
@@ -648,46 +662,33 @@ export function ProductPurchase() {
                                 <button
                                     type="submit"
                                     disabled={isProcessing}
-                                    className="btn-sweep bg-[var(--color-brand)] text-white
-                             px-5 py-3.5 rounded-[var(--radius-md)] text-sm font-semibold mt-1
-                             disabled:opacity-60 disabled:pointer-events-none
-                             flex items-center justify-center gap-2"
+                                    className="w-full bg-[var(--color-brand)] text-white hover:brightness-105 active:scale-[0.99] transition-all py-4 rounded-[var(--radius-xl)] text-sm font-bold mt-2 shadow-lg shadow-[var(--color-brand)]/20 disabled:opacity-75 disabled:pointer-events-none flex items-center justify-center gap-2"
                                 >
-                                    {checkoutState === "initiating" && (
+                                    {isProcessing ? (
                                         <>
                                             <FaSpinner
-                                                className="animate-spin"
+                                                className="animate-spin text-white"
                                                 size={14}
-                                            />{" "}
-                                            Preparing order...
+                                            />
+                                            {checkoutState === "initiating" &&
+                                                "Preparing order..."}
+                                            {checkoutState ===
+                                                "awaiting-payment" &&
+                                                "Awaiting authorization..."}
+                                            {checkoutState === "verifying" &&
+                                                "Confirming receipt..."}
                                         </>
+                                    ) : (
+                                        `Pay ${formatNaira(total)}`
                                     )}
-                                    {checkoutState === "awaiting-payment" && (
-                                        <>
-                                            <FaSpinner
-                                                className="animate-spin"
-                                                size={14}
-                                            />{" "}
-                                            Complete payment in popup...
-                                        </>
-                                    )}
-                                    {checkoutState === "verifying" && (
-                                        <>
-                                            <FaSpinner
-                                                className="animate-spin"
-                                                size={14}
-                                            />{" "}
-                                            Confirming payment...
-                                        </>
-                                    )}
-                                    {(checkoutState === "idle" ||
-                                        checkoutState === "error") &&
-                                        `Pay ${formatNaira(total)}`}
                                 </button>
 
-                                <p className="text-caption text-[var(--overlay-text-faint)] text-center">
-                                    🔒 Secure payment via Paystack. Your card
-                                    details are never stored on our servers.
+                                <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5 mt-1">
+                                    <FaLock
+                                        size={10}
+                                        className="text-emerald-500"
+                                    />{" "}
+                                    Secure transaction architecture by Paystack.
                                 </p>
                             </form>
                         </motion.div>

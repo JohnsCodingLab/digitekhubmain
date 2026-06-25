@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import FloatingSupport from "@/src/components/common/FloatingSupport";
-import { ThemeProvider } from "../components/common/ThemeProvider";
+import { CustomThemeProvider } from "../components/common/useTheme";
 
 export const metadata: Metadata = {
     title: "Digitek Network | Reliable & Affordable Business Internet Provider in Nigeria",
@@ -71,8 +71,8 @@ export default function RootLayout({
                 />
             </head>
             <body className="antialiased">
-                {/* Skip to content — keyboard and screen reader users */}
-                <ThemeProvider>
+                <CustomThemeProvider>
+                    {/* Skip to content — keyboard and screen reader users */}
                     <a href="#main-content" className="skip-to-content">
                         Skip to main content
                     </a>
@@ -80,7 +80,7 @@ export default function RootLayout({
                         {children}
                         <FloatingSupport />
                     </main>
-                </ThemeProvider>
+                </CustomThemeProvider>
             </body>
         </html>
     );

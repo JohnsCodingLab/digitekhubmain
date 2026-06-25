@@ -8,7 +8,7 @@ import { Section } from "@/src/components/layout/Section";
 import { Container } from "@/src/components/layout/Container";
 import { ScrollReveal } from "@/src/components/common/ScrollReveal";
 import { PlanCard } from "@/src/components/common/PlanCard";
-import { useTheme } from "@/src/lib/useTheme";
+import { useTheme } from "@/src/components/common/useTheme";
 import {
     HOME_PLANS,
     BUSINESS_PLANS,
