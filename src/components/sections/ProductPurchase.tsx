@@ -7,7 +7,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import PaystackPop from "@paystack/inline-js";
 import {
     FaCheck,
     FaSpinner,
@@ -162,6 +161,8 @@ export function ProductPurchase() {
         }
 
         try {
+            const { default: PaystackPop } =
+                await import("@paystack/inline-js");
             // Trigger the Paystack Pop gateway directly
             const paystack = new PaystackPop();
             setCheckoutState("awaiting-payment");
