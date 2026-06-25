@@ -7,7 +7,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePaystackPayment } from "react-paystack";
+import PaystackPop from "@paystack/inline-js";
 import {
     FaCheck,
     FaSpinner,
@@ -27,15 +27,8 @@ import {
 
 const PRODUCT = PRODUCTS[0];
 
-interface PaystackConfig {
-    reference: string;
-    email: string;
-    amount: number;
-    publicKey: string;
-}
-
 export function ProductPurchase() {
-    const { isLight } = useTheme(); // Now actively used for structural conditioning
+    const { isLight } = useTheme();
     const [quantities, setQuantities] = useState<Record<string, number>>(() =>
         Object.fromEntries(PRODUCT.variants.map((v) => [v.id, 0])),
     );
@@ -51,18 +44,6 @@ export function ProductPurchase() {
 
     const [checkoutState, setCheckoutState] = useState<CheckoutState>("idle");
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
-    const [paystackConfig, setPaystackConfig] = useState<PaystackConfig | null>(
-        null,
-    );
-
-    const initializePayment = usePaystackPayment(
-        paystackConfig ?? {
-            reference: "",
-            email: "",
-            amount: 0,
-            publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "",
-        },
-    );
 
     const isProcessing =
         checkoutState === "initiating" ||
@@ -180,45 +161,38 @@ export function ProductPurchase() {
             return;
         }
 
-        setPaystackConfig({
-            reference: result.reference,
-            email: result.email,
-            amount: result.amountKobo,
-            publicKey,
-        });
+        try {
+            // Trigger the Paystack Pop gateway directly
+            const paystack = new PaystackPop();
+            setCheckoutState("awaiting-payment");
+
+            paystack.newTransaction({
+                key: publicKey,
+                email: result.email,
+                amount: result.amountKobo,
+                reference: result.reference,
+                onSuccess: async (response: { reference: string }) => {
+                    setCheckoutState("verifying");
+                    const verifyResult = await verifyOrder(response.reference);
+                    if (!verifyResult.success) {
+                        setCheckoutError(
+                            verifyResult.error ??
+                                "Payment could not be verified.",
+                        );
+                        setCheckoutState("error");
+                        return;
+                    }
+                    setCheckoutState("success");
+                },
+                onCancel: () => {
+                    setCheckoutState("idle");
+                },
+            });
+        } catch {
+            setCheckoutError("Failed to initialize Paystack gateway.");
+            setCheckoutState("error");
+        }
     };
-
-    const hasOpenedPopupRef = React.useRef(false);
-
-    useEffect(() => {
-        if (!paystackConfig || hasOpenedPopupRef.current) return;
-        hasOpenedPopupRef.current = true;
-        setCheckoutState("awaiting-payment");
-
-        const onSuccess = async (response: { reference: string }) => {
-            setCheckoutState("verifying");
-            const verifyResult = await verifyOrder(response.reference);
-            if (!verifyResult.success) {
-                setCheckoutError(
-                    verifyResult.error ?? "Payment could not be verified.",
-                );
-                setCheckoutState("error");
-                return;
-            }
-            setCheckoutState("success");
-        };
-
-        const onClose = () => {
-            setCheckoutState((current) =>
-                current === "success" ? current : "idle",
-            );
-            hasOpenedPopupRef.current = false;
-            setPaystackConfig(null);
-        };
-
-        initializePayment({ onSuccess, onClose });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paystackConfig]);
 
     if (checkoutState === "success") {
         return (
