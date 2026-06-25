@@ -10,7 +10,7 @@
 import React from "react";
 import Link from "next/link";
 import { LuPhoneCall, LuMail, LuMessageCircle } from "react-icons/lu";
-import { FaXTwitter, FaInstagram, FaLinkedin, FaTiktok } from "react-icons/fa6";
+import { FaXTwitter, FaInstagram, FaTiktok } from "react-icons/fa6";
 import { Container } from "@/src/components/layout/Container";
 import { ScrollReveal } from "@/src/components/common/ScrollReveal";
 import { useTheme } from "@/src/components/common/useTheme";
@@ -120,14 +120,6 @@ export default function ContactUs() {
             textColor: isLight
                 ? "text-pink-600 border-neutral-200"
                 : "text-pink-400 border-neutral-800",
-        },
-        {
-            label: "LinkedIn",
-            href: SOCIAL_LINKS.linkedin.href,
-            icon: <FaLinkedin size={14} />,
-            textColor: isLight
-                ? "text-blue-600 border-neutral-200"
-                : "text-blue-400 border-neutral-800",
         },
         {
             label: "TikTok",
@@ -316,7 +308,7 @@ export default function ContactUs() {
                                                         : "text-white font-bold"
                                                 }
                                             >
-                                                under 2 operational hours
+                                                under 20 Minutes
                                             </span>
                                             . WhatsApp remains optimized for
                                             urgent critical path resolution

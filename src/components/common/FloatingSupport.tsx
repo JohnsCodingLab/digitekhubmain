@@ -7,7 +7,7 @@ import { FaWhatsapp, FaTimes } from "react-icons/fa";
 export default function FloatingSupport() {
     const [isOpen, setIsOpen] = useState(false);
     const whatsappLink = "https://wa.me/message/UVP5FK3ABYYJA1";
-    const phoneNumber = "+234 813 936 6884";
+    const phoneNumber = "+234 701 908 2131";
     const businessName = "Digitek Network Support";
 
     // Explicitly typing variants as 'Variants' satisfies the TypeScript compiler
