@@ -10,7 +10,7 @@ export const SITE_CONFIG = {
         "From high-speed business internet to local networking and round-the-clock maintenance, Digitekhub ensures your business stays connected and productive.",
     baseUrl: "https://network.digitekhub.io",
     officialSiteUrl: "https://www.digitekhub.io",
-    registerUrl: "https://digiteknetwork.netlify.app/",
+    registerUrl: "/register",
 } as const;
 
 // ─────────────────────────────────────────────
