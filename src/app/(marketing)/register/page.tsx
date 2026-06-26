@@ -1,3 +1,7 @@
+/**
+ * src/app/(marketing)/register/page.tsx
+ */
+
 "use client";
 
 import React, { useState } from "react";
@@ -149,10 +153,12 @@ export default function RegisterPage() {
         : "bg-white/5 border-white/10 shadow-2xl";
     const textMain = isLight ? "text-slate-900" : "text-white";
     const textMuted = isLight ? "text-slate-500" : "text-slate-400";
-    const inputStyle = `w-full px-4 py-3 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/[0.06] transition-all duration-300 ${
+
+    // Inverts native picker icons under dark mode configurations via a clean arbitrary class string
+    const inputStyle = `w-full px-4 py-3 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/[0.06] transition-all duration-300 [&::-webkit-calendar-picker-indicator]:cursor-pointer ${
         isLight
-            ? "border-slate-200 bg-white text-slate-900"
-            : "border-white/10 bg-black text-white"
+            ? "border-slate-200 bg-white text-slate-900 [&::-webkit-calendar-picker-indicator]:filter-none"
+            : "border-white/10 bg-black text-white [&::-webkit-calendar-picker-indicator]:invert"
     }`;
 
     return (
