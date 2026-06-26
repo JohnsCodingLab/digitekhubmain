@@ -152,7 +152,7 @@ export default function RegisterPage() {
     const inputStyle = `w-full px-4 py-3 rounded-[var(--radius-xl)] border text-sm focus:outline-none focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/[0.06] transition-all duration-300 ${
         isLight
             ? "border-slate-200 bg-white text-slate-900"
-            : "border-white/10 bg-white/5 text-white"
+            : "border-white/10 bg-black text-white"
     }`;
 
     return (
