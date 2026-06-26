@@ -11,7 +11,7 @@ import { staggerContainer, cardReveal } from "@/src/lib/animations";
 const imageMap: Record<string, string> = {
     internetPlans: "/InternetPlans.jpeg",
     localNetwork: "/LocalNetworking.jpeg",
-    maintenance: "/Maintenance.jpeg",
+    maintenance: "/internet-maintenance.jpg",
     digital: "/Digital.jpeg",
 };
 
@@ -21,13 +21,13 @@ export default function Solutions() {
             <Container>
                 <div className="text-center mb-16 md:mb-20">
                     <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-neutral-900 leading-tight">
-                        Enterprise Infrastructure{" "}
-                        <span className="text-[#A30005]">Capabilities</span>
+                        Industry{" "}
+                        <span className="text-[#A30005]">Solutions</span>
                     </h2>
                     <p className="text-sm md:text-base text-neutral-600 font-normal leading-relaxed mt-4 max-w-xl mx-auto">
                         End-to-end connectivity solutions engineered to sustain
-                        core corporate workflows and digital data scaling across
-                        Nigeria.
+                        core corporate and home workflows and digital data
+                        scaling across Nigeria.
                     </p>
                 </div>
                 <motion.div

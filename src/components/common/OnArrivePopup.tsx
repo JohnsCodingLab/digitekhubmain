@@ -33,7 +33,7 @@ export function OnArrivePopup() {
                 source="on-arrive-popup"
                 title="Register for Fast Internet in Your Area"
                 description="Get connected with reliable business internet. Tell us where you're located and our team will call you within 20 minutes."
-                submitLabel="Register My Business"
+                submitLabel="Submit"
                 onSuccess={() => setTimeout(handleClose, 4000)}
             />
         </Modal>

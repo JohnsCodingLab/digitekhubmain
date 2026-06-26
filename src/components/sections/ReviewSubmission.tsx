@@ -93,9 +93,9 @@ export default function ReviewSubmission() {
                             Used Digitek Network? Tell Us About It
                         </h2>
                         <p className="text-body text-white/50 max-w-lg mx-auto">
-                            Your experience helps other businesses make the
-                            right choice. Submissions are reviewed by our team
-                            before being published.
+                            Your experience helps other businesses and homes
+                            make the right choice. Submissions are reviewed by
+                            our team before being published.
                         </p>
                     </div>
                 </ScrollReveal>

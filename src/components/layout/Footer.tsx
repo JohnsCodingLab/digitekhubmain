@@ -3,13 +3,14 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaFacebook, FaLinkedin, FaTiktok, FaInstagram } from "react-icons/fa6";
+import { FaFacebook, FaTiktok, FaInstagram } from "react-icons/fa6";
 import {
     NAV_LINKS,
     CONTACT_INFO,
     SOCIAL_LINKS,
     SITE_CONFIG,
 } from "@/src/lib/constants";
+import { FaTwitter } from "react-icons/fa";
 
 // Social link config
 const socialLinks = [
@@ -20,10 +21,10 @@ const socialLinks = [
         icon: <FaInstagram size={16} />,
     },
     {
-        key: "linkedin",
-        label: "LinkedIn",
-        href: SOCIAL_LINKS.linkedin.href,
-        icon: <FaLinkedin size={16} />,
+        key: "twitter",
+        label: "Twitter / X",
+        href: SOCIAL_LINKS.twitter.href,
+        icon: <FaTwitter size={16} />,
     },
     {
         key: "tiktok",
@@ -74,7 +75,7 @@ export default function Footer() {
                     </Link>
                     <p className="text-body-sm text-white/40 leading-relaxed max-w-xs">
                         Fast, reliable, and affordable internet solutions for
-                        Nigerian businesses. Connected 24/7.
+                        Nigerian businesses and homes. Connected 24/7.
                     </p>
                     <Link
                         href={SITE_CONFIG.registerUrl}

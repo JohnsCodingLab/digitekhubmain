@@ -11,7 +11,7 @@
  * are fully preserved — see inline comments.
  *
  * One env var required (same as leads route):
- *   N8N_WEBHOOK_URL=https://digitekhub.app.n8n.cloud/webhook/7d768a39-e28e-4c5f-bafa-5aa2a08675ea
+ *   N8N_ORDERS_WEBHOOK_URL=https://digitekhub.app.n8n.cloud/webhook/6f6be1b0-f50d-4580-8b02-50307cb9ec05
  *
  * Payload shape sent to n8n on confirmed order:
  * {
@@ -100,10 +100,12 @@ async function notifyWebhook(
     order: PendingOrder,
     paystackRef: string,
 ): Promise<void> {
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    const webhookUrl = process.env.N8N_ORDERS_WEBHOOK_URL;
 
     if (!webhookUrl) {
-        console.warn("N8N_WEBHOOK_URL not configured — skipping webhook");
+        console.warn(
+            "N8N_ORDERS_WEBHOOK_URL not configured — skipping webhook",
+        );
         return;
     }
 

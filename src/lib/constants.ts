@@ -34,7 +34,7 @@ export const CONTACT_INFO = {
     },
     whatsapp: {
         display: "Drop a Message",
-        href: "https://wa.me/2348084442133",
+        href: "https://wa.me/2347019082131",
     },
     address: "22 Glovo Road Ikoyi, Lagos",
 } as const;
@@ -63,7 +63,7 @@ export const SOCIAL_LINKS = {
         label: "Instagram",
     },
     twitter: {
-        href: "#", // TODO: Add real Twitter/X URL
+        href: "https://x.com/digitek_network?s=11", // TODO: Add real Twitter/X URL
         label: "Twitter / X",
     },
 } as const;

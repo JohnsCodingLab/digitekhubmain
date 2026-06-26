@@ -108,7 +108,7 @@ function HeroSlideshow() {
                             src={slide.src}
                             alt={slide.alt}
                             fill
-                            className="object-cover object-center pointer-events-none mix-blend-luminosity opacity-30"
+                            className="object-cover object-center pointer-events-none mix-blend-luminosity opacity-60"
                             priority={i === 0}
                             sizes="100vw"
                         />
@@ -189,7 +189,7 @@ export default function Hero() {
                         variants={heroItem}
                         className="text-white font-extrabold text-3xl sm:text-4xl md:text-[3.75rem] leading-[1.08] tracking-tight mb-5"
                     >
-                        Powering Businesses
+                        Powering Businesses and Homes
                         <br />
                         with Fast, Reliable &amp;
                         <br />
@@ -205,8 +205,8 @@ export default function Hero() {
                         className="text-neutral-400 text-base sm:text-[1.0625rem] leading-[1.7] max-w-[520px] mb-9 font-normal"
                     >
                         High-speed, enterprise-grade connectivity built for
-                        Nigerian businesses — with 99.9% uptime and 24/7 local
-                        support.
+                        Nigerian businesses and homes with 99.9% uptime and 24/7
+                        local support.
                     </motion.p>
 
                     {/* Actions and Targets Row */}

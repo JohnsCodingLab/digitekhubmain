@@ -301,12 +301,12 @@ export function ProductPurchase() {
                                 <h3
                                     className={`text-lg font-bold ${isLight ? "text-slate-900" : "text-white"}`}
                                 >
-                                    Configure Order
+                                    Powerbank Order
                                 </h3>
                                 <p
                                     className={`text-xs mt-0.5 ${isLight ? "text-slate-500" : "text-slate-400"}`}
                                 >
-                                    Select your desired configurations and
+                                    Select your desired Powerbank Variant and
                                     quantities below
                                 </p>
                             </div>
@@ -515,7 +515,7 @@ export function ProductPurchase() {
                                 disabled={isProcessing}
                                 className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors mb-6 disabled:opacity-30 inline-block"
                             >
-                                ← Return to configs
+                                ← Return to order
                             </button>
 
                             <div

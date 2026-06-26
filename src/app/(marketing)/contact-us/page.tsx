@@ -20,6 +20,7 @@ import {
     CONTACT_INFO,
     type ContactChannel,
 } from "@/src/lib/constants";
+import { FaFacebook } from "react-icons/fa";
 
 const channelIconMap: Record<
     string,
@@ -136,6 +137,14 @@ export default function ContactUs() {
             textColor: isLight
                 ? "text-neutral-700 border-neutral-200"
                 : "text-white/70 border-neutral-800",
+        },
+        {
+            label: "Facebook",
+            href: SOCIAL_LINKS.facebook.href,
+            icon: <FaFacebook size={14} />,
+            textColor: isLight
+                ? "text-blue-600 border-neutral-200"
+                : "text-blue-500/70 border-neutral-800",
         },
     ];
 

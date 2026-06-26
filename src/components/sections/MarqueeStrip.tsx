@@ -21,6 +21,7 @@ const DEFAULT_ITEMS = [
     "Fast Fiber",
     "Local Networking",
     "Business Internet",
+    "Home Internet",
     "Enterprise Solutions",
 ];
 

@@ -60,7 +60,7 @@ function PlanToggle({
                     Home Plans
                 </button>
             </div>
-            <p className="text-caption text-white/30 text-center max-w-md">
+            <p className="text-caption text-white/70 text-center max-w-md">
                 {INSTALLATION_FEE_NOTE}
             </p>
         </div>
@@ -116,7 +116,7 @@ export default function OurPlans() {
                                 <h1 className="text-h1 text-white mb-4">
                                     Choose Your Plan
                                 </h1>
-                                <p className="text-body-lg text-white/50 max-w-xl mx-auto mb-10">
+                                <p className="text-body-lg text-white/70 max-w-xl mx-auto mb-10">
                                     Simple, transparent pricing. No hidden fees.
                                     Upgrade or downgrade anytime.
                                 </p>

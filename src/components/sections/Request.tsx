@@ -29,7 +29,7 @@ export default function Request() {
 
                             {/* Headline */}
                             <h2 className="text-h1 text-white max-w-2xl">
-                                Ready to keep your business{" "}
+                                Ready to keep your business and homes{" "}
                                 <span className="text-gradient-brand">
                                     always connected?
                                 </span>
@@ -37,9 +37,9 @@ export default function Request() {
 
                             {/* Subtext */}
                             <p className="text-body-lg text-white/60 max-w-lg">
-                                Join 500+ Nigerian businesses powered by Digitek
-                                Network. Fast setup. Zero downtime commitment.
-                                Dedicated support around the clock.
+                                Join 500+ Nigerian businesses and homes powered
+                                by Digitek Network. Fast setup. Zero downtime
+                                commitment. Dedicated support around the clock.
                             </p>
 
                             {/* CTA row */}
@@ -65,7 +65,7 @@ export default function Request() {
                             </div>
 
                             {/* Trust micro-copy */}
-                            <p className="text-caption text-white/30">
+                            <p className="text-caption text-white/60">
                                 No long-term contract required · Installation
                                 within 48 hours
                             </p>

@@ -54,7 +54,7 @@ export default function CoverageChecker() {
                         </h2>
                         <p className="text-body text-black mb-8 max-w-lg">
                             Enter your details and we&apos;ll confirm whether
-                            Digitek Network is available in your area — usually
+                            Digitek Network is available in your area usually
                             within 20 minutes.
                         </p>
 
@@ -262,8 +262,8 @@ export default function CoverageChecker() {
                                     </motion.div>
                                 ))}
                             </div>
-                            <p className="text-caption text-white/30 mt-6 pt-5 border-t border-white/8">
-                                Not listed? We&apos;re expanding fast — submit
+                            <p className="text-caption text-white mt-6 pt-5 border-t border-white/8">
+                                Not listed? We&apos;re expanding fast submit
                                 your area and we&apos;ll let you know.
                             </p>
                         </div>

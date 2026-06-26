@@ -44,9 +44,9 @@ export function ExitIntentPopup() {
         >
             <LeadForm
                 source="exit-intent-popup"
-                title="Don't Miss Out — Get Connected"
-                description="Fast, reliable business internet is closer than you think. Register now and we'll call you within 20 minutes."
-                submitLabel="Register My Business"
+                title="Don't Miss Out, Get Connected"
+                description="Fast, reliable business and home internet is closer than you think. Register now and we'll call you within 20 minutes."
+                submitLabel="Submit"
                 onSuccess={() => setTimeout(handleClose, 4000)}
             />
         </Modal>
